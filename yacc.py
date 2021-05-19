@@ -44,10 +44,6 @@ Funcao : Write '(' String ')'
        | Repeat '(' Condicional ')' '{' Instrucoes '}'
        | If '(' Condicional ')' '{' Instrucoes '}' Else '{' Instrucoes '}'
        | If '(' Condicional ')' '{' Instrucoes '}'
-
-String : String Id
-       | 
-
 """
 
 #Tabela de Simbolos dict{variavel : pos_stack}

@@ -5,7 +5,7 @@ import sys
 
 literals = ['(',')','+','-','*','/','=','"',';',',','>','<','!','{','}','[',']']
 
-tokens = ["Num","If","Else","Id","Repeat","Int","Read","Write","String"]
+tokens = ["Num","If","Else","Id","Repeat","Int","Read","ReadInt","Write","String"]
 
 def t_If(t):
     r'if'
@@ -16,11 +16,14 @@ def t_Num(t):
 def t_Repeat(t): 
     r'repeat-until'
     return(t)
-def t_Int(t): 
-    r'int'
+def t_ReadInt(t): 
+    r'readInt'
     return(t)
 def t_Read(t): 
     r'read'
+    return(t)
+def t_Int(t): 
+    r'int'
     return(t)
 def t_Write(t): 
     r'write'
@@ -32,7 +35,7 @@ def t_Id(t):
     r'\w+'
     return(t)
 def t_String(t):
-    r'"[^"]+"'
+    r'"[^"]*"'
     return(t)
 
 t_ignore = " \t\n"

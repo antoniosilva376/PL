@@ -39,6 +39,7 @@ Condicional : Operacao '>' Operacao
 
 Funcao : Write '(' String ')'
        | Write '(' Operacao ')'
+       | ReadInt '(' ')'
        | Read '(' ')'
        | Repeat '(' Condicional ')' '{' Instrucoes '}'
        | If '(' Condicional ')' '{' Instrucoes '}' Else '{' Instrucoes '}'
@@ -86,8 +87,6 @@ def p_Instrucao_Funcao(p):
 
 def p_Funcao_Write_String(p):
     "Funcao : Write '(' String ')'"
-    # printar
-    # transformar p[3] em str e dar print
     p[3] = p[3] + "\\n"
     p[0] = "\npushs " + p[3] + "\nwrites"
 
@@ -95,9 +94,17 @@ def p_Funcao_Write_Operacao(p):
     "Funcao : Write '(' Operacao ')'"
     p[0] = p[3] + "\nstri" + "\nwrites"
 
+def p_Funcao_ReadInt(p):
+    "Funcao : ReadInt '(' ')'"
+    global pos_stack
+    p[0] = "\nread \natoi" 
+    pos_stack+=1
+
 def p_Funcao_Read(p):
     "Funcao : Read '(' ')'"
-    p[0] = "\nread \nwrites"
+    global pos_stack
+    p[0] = "\nread"
+    pos_stack+=1
 
 def p_Funcao_Repeat(p):
     "Funcao : Repeat '(' Condicional ')' '{' Instrucoes '}'"
@@ -125,14 +132,17 @@ def p_Funcao_IfElse(p):
 def p_Funcao_If(p):
     "Funcao : If '(' Condicional ')' '{' Instrucoes '}'"
     global func_nr
+    global pos_stack
     p[0] = (p[3]+"\njz end" + str(func_nr)
         + p[6] 
         + "\nend" + str(func_nr) +":"
         )
     func_nr+=1
 
+
+
 def p_Atribuicao_Declaracao_Zero(p):
-    "Atribuicao : Int Id "
+    "Atribuicao : Int Id"
     if(p[2] not in ts):
         global pos_stack
         ts[p[2]] = pos_stack
@@ -209,6 +219,8 @@ def p_Fator_Num(p):
 def p_Fator_Id(p):
     "Fator : Id"
     p[0] = "\npushg " + str(ts[p[1]])
+    global pos_stack
+    pos_stack+=1
 
 def p_Fator_Operacao(p):
     "Fator : '(' Operacao ')'"
@@ -218,27 +230,39 @@ def p_Fator_Operacao(p):
 
 def p_Condicional_Maior(p):
     "Condicional : Operacao '>' Operacao"
-    p[0] = str(p[3]) + str(p[1]) + "\nsup"
+    p[0] = str(p[1]) + str(p[3]) + "\nsup"
+    global pos_stack
+    pos_stack-=2
 
 def p_Condicional_Menor(p):
     "Condicional : Operacao '<' Operacao"
-    p[0] = str(p[3]) + str(p[1]) + "\ninf"
+    p[0] = str(p[1]) + str(p[3]) + "\ninf"
+    global pos_stack
+    pos_stack-=2
 
 def p_Condicional_MaiorIgual(p):
     "Condicional : Operacao '>' '=' Operacao"
-    p[0] = str(p[4]) + str(p[1]) + "\nsupeq"
+    p[0] = str(p[1]) + str(p[4]) + "\nsupeq"
+    global pos_stack
+    pos_stack-=2
 
 def p_Condicional_MenorIgual(p):
     "Condicional : Operacao '<' '=' Operacao"
-    p[0] = str(p[4]) + str(p[1]) + "\ninfeq"
+    p[0] = str(p[1]) + str(p[4]) + "\ninfeq"
+    global pos_stack
+    pos_stack-=2
 
 def p_Condicional_Igual(p):
     "Condicional : Operacao '=' '=' Operacao"
-    p[0] = str(p[4]) + str(p[1]) + "\nequal"
+    p[0] = str(p[1]) + str(p[4]) + "\nequal"
+    global pos_stack
+    pos_stack-=2
 
 def p_Condicional_Diferente(p):
     "Condicional : Operacao '!' '=' Operacao"
-    p[0] = str(p[4]) + str(p[1]) + "\nequal\nnot"
+    p[0] = str(p[1]) + str(p[4]) + "\nequal\nnot"
+    global pos_stack
+    pos_stack-=2
 
 
 
@@ -253,3 +277,4 @@ parser = yacc.yacc()
 for linha in sys.stdin:
     result = parser.parse(linha)
     print(result)
+    print("\nposicao stack -",pos_stack)

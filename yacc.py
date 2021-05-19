@@ -57,11 +57,11 @@ Funcao : Write '(' String ')'
 """
 
 # Tabela de Simbolos dict{variavel : pos_stack}
-
 ts = dict({})
-
 # Tabela de Arrays dict{variavel : (pos_stack,tamanho)}
 ta = dict({})
+# Tabela de Arrays2D dict{variavel : (pos_stack,tamanho_linha,tamnho_coluna)}
+tm = dict({})
 #variavel que aponta para a posição atual da stack
 pos_stack=0
 #variavel para tornar as etiquetas unicas
@@ -153,7 +153,7 @@ def p_Funcao_If(p):
 
 def p_Atribuicao_Declaracao_Zero(p):
     "Atribuicao : Int Id"
-    if(p[2] not in ts):
+    if(p[2] not in ts and p[2] not in ta and p[2] not in tm):
         global pos_stack
         ts[p[2]] = pos_stack
         p[0] = "\npushi 0"
@@ -164,7 +164,7 @@ def p_Atribuicao_Declaracao_Zero(p):
 
 def p_Atribuicao_Declaracao_Input(p):
     "Atribuicao : Int Id '=' ReadInt '(' ')'"
-    if(p[2] not in ts):
+    if(p[2] not in ts and p[2] not in ta and p[2] not in tm):
         global pos_stack
         ts[p[2]] = pos_stack
         p[0] = "\nread \natoi" 
@@ -175,7 +175,7 @@ def p_Atribuicao_Declaracao_Input(p):
 
 def p_Atribuicao_Declaracao(p):
     "Atribuicao : Int Id '=' Operacao"
-    if(p[2] not in ts):
+    if(p[2] not in ts and p[2] not in ta and p[2] not in tm):
         global pos_stack
         ts[p[2]] = pos_stack-1
         p[0] =  str(p[4])
@@ -185,7 +185,7 @@ def p_Atribuicao_Declaracao(p):
     
 def p_Atribuicao_Declaracao_Array(p):
     "Atribuicao : Int Id '[' Num ']'"
-    if(p[2] not in ta):
+    if(p[2] not in ts and p[2] not in ta and p[2] not in tm):
         global pos_stack
         ta[p[2]] = (pos_stack,int(p[4]))
         p[0] = "\npushn " + str(p[4])
@@ -196,9 +196,9 @@ def p_Atribuicao_Declaracao_Array(p):
 
 def p_Atribuicao_Declaracao_Matriz(p):
     "Atribuicao : Int Id '[' Num ',' Num ']'"
-    if(p[2] not in ta):
+    if(p[2] not in ts and p[2] not in ta and p[2] not in tm):
         global pos_stack
-        ta[p[2]] = (pos_stack,int(p[4])*int(p[6]))
+        tm[p[2]] = (pos_stack,int(p[4]),int(p[6]))
         p[0] = "\npushn " + str(int(p[4])*int(p[6]))
         pos_stack += int(p[4])*int(p[6])
     else:
@@ -207,7 +207,7 @@ def p_Atribuicao_Declaracao_Matriz(p):
 
 def p_Atribuicao_Alt(p):
     "Atribuicao : Id '=' Operacao"
-    if(p[1] in ts):
+    if(p[1] in tm):
         global pos_stack
         p[0] =  str(p[3]) + "\nstoreg " + str(ts[p[1]])
         pos_stack-=1
@@ -229,7 +229,7 @@ def p_Atribuicao_Array(p):
     "Atribuicao : Id '[' Operacao ']' '=' Operacao"
     if(p[1] in ta):
         global pos_stack
-        p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[6] + "\nstoren"
+        p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[6] + "\nstoren"
         pos_stack-=1
     else:
         #erro
@@ -239,7 +239,7 @@ def p_Atribuicao_Array_Input(p):
     "Atribuicao : Id '[' Operacao ']' '=' ReadInt '(' ')'"
     if(p[1] in ta):
         global pos_stack
-        p[0] =  "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nread \natoi \nstoren"
+        p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nread \natoi \nstoren"
         pos_stack-=1
     else:
         #erro
@@ -248,8 +248,9 @@ def p_Atribuicao_Array_Input(p):
 def p_Atribuicao_Matriz(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' Operacao"
     if(p[1] in ta):
-        global pos_stack
-        p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[5] + "\mul" + p[8] + "\nstoren"
+        global pos_stack  
+                                                   #linha      *      tamanho da linha          + posicao da coluna
+        p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][2]) + "\nmul" + p[5] + "\nadd" + p[8] + "\nstoren"
         pos_stack-=1
     else:
         #erro
@@ -258,8 +259,8 @@ def p_Atribuicao_Matriz(p):
 def p_Atribuicao_Matriz_Input(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'"
     if(p[1] in ta):
-        global pos_stack
-        p[0] =  "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[5] + "\nmul \nread \natoi \nstoren"
+        global pos_stack  
+        p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][1]) + "\nmul" + p[5] + "\nadd \nread \natoi \nstoren"
         pos_stack-=1
     else:
         #erro
@@ -315,15 +316,18 @@ def p_Fator_Id(p):
 
 def p_Fator_Array(p): 
     "Fator : Id '[' Operacao ']'"
-    p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nloadn"
     global pos_stack
+    p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nloadn"
+    
     pos_stack-=1
+    func_nr+=1
 
 def p_Fator_Matriz(p): 
     "Fator : Id '[' Operacao ',' Operacao ']'"
-    p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[5] + "\nmul\nloadn"
     global pos_stack
+    p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + p[5] + "\nmul\nloadn"
     pos_stack-=1
+    func_nr+=1
 
 def p_Fator_Operacao(p):
     "Fator : '(' Operacao ')'"

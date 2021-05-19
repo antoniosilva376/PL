@@ -15,8 +15,13 @@ Instrucao : Atribuicao
 
 
 Atribuicao : int id
+           | int id '[' num ']'
            | int id '=' Operacao
+           | int id '=' ReadInt '(' ')'
            | id '=' Operacao
+           | id '=' ReadInt '(' ')'
+           | id '[' num ']' '=' Operacao
+           | id '[' num ']' '=' ReadInt '(' ')'
            
 Operacao : Operacao '+' Termo
          | Operacao '-' Termo
@@ -28,6 +33,7 @@ Termo : Termo '*' Fator
 
 Fator : Num
       | Id
+      | Id '[' Num ']'
       | '(' Operacao ')'
 
 Condicional : Operacao '>' Operacao
@@ -83,7 +89,7 @@ def p_Instrucao_Funcao(p):
 
 def p_Funcao_Write_String(p):
     "Funcao : Write '(' String ')'"
-    p[3] = p[3] + "\\n"
+    p[3] = p[3][:-1] + "\\n\"" 
     p[0] = "\npushs " + p[3] + "\nwrites"
 
 def p_Funcao_Write_Operacao(p):
@@ -142,7 +148,18 @@ def p_Atribuicao_Declaracao_Zero(p):
     if(p[2] not in ts):
         global pos_stack
         ts[p[2]] = pos_stack
-        p[0] = "\npushi 0\nstoreg " + str(ts[p[2]])
+        p[0] = "\npushi 0"
+        pos_stack+=1
+    else:
+        #erro
+        pass
+
+def p_Atribuicao_Declaracao_Input(p):
+    "Atribuicao : Int Id '=' ReadInt '(' ')'"
+    if(p[2] not in ts):
+        global pos_stack
+        ts[p[2]] = pos_stack
+        p[0] = "\nread \natoi" 
         pos_stack+=1
     else:
         #erro
@@ -153,7 +170,7 @@ def p_Atribuicao_Declaracao(p):
     if(p[2] not in ts):
         global pos_stack
         ts[p[2]] = pos_stack-1
-        p[0] =  str(p[4]) + "\nstoreg " + str(ts[p[2]])
+        p[0] =  str(p[4])
     else:
         #erro
         pass
@@ -163,6 +180,16 @@ def p_Atribuicao_Alt(p):
     if(p[1] in ts):
         global pos_stack
         p[0] =  str(p[3]) + "\nstoreg " + str(ts[p[1]])
+        pos_stack-=1
+    else:
+        #erro
+        pass
+
+def p_Atribuicao_Input(p):
+    "Atribuicao : Id '=' ReadInt '(' ')'"
+    if(p[1] in ts):
+        global pos_stack
+        p[0] =  "\nread \natoi \nstoreg " + str(ts[p[1]])
         pos_stack-=1
     else:
         #erro
@@ -273,4 +300,3 @@ parser = yacc.yacc()
 for linha in sys.stdin:
     result = parser.parse(linha)
     print(result)
-    print("\nposicao stack -",pos_stack)

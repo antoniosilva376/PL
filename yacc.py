@@ -120,7 +120,7 @@ def p_Funcao_Repeat(p):
     "Funcao : Repeat '(' Condicional ')' '{' Instrucoes '}'"
     global func_nr
     p[0] = ("\nrepeat" + str(func_nr) +":" 
-        + p[3]+"\nnot\njz end" + str(func_nr)
+        + p[3] +"\nnot\njz end" + str(func_nr)
         + p[6]
         + "\njump repeat" + str(func_nr)
         + "\nend" + str(func_nr) +":"
@@ -207,7 +207,7 @@ def p_Atribuicao_Declaracao_Matriz(p):
 
 def p_Atribuicao_Alt(p):
     "Atribuicao : Id '=' Operacao"
-    if(p[1] in tm):
+    if(p[1] in ts):
         global pos_stack
         p[0] =  str(p[3]) + "\nstoreg " + str(ts[p[1]])
         pos_stack-=1
@@ -228,9 +228,7 @@ def p_Atribuicao_Input(p):
 def p_Atribuicao_Array(p):
     "Atribuicao : Id '[' Operacao ']' '=' Operacao"
     if(p[1] in ta):
-        global pos_stack
         p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[6] + "\nstoren"
-        pos_stack-=1
     else:
         #erro
         pass
@@ -238,44 +236,38 @@ def p_Atribuicao_Array(p):
 def p_Atribuicao_Array_Input(p):
     "Atribuicao : Id '[' Operacao ']' '=' ReadInt '(' ')'"
     if(p[1] in ta):
-        global pos_stack
         p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nread \natoi \nstoren"
-        pos_stack-=1
     else:
         #erro
         pass
 
 def p_Atribuicao_Matriz(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' Operacao"
-    if(p[1] in ta):
-        global pos_stack  
+    if(p[1] in tm): 
                                                    #linha      *      tamanho da linha          + posicao da coluna
         p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][2]) + "\nmul" + p[5] + "\nadd" + p[8] + "\nstoren"
-        pos_stack-=1
     else:
         #erro
         pass
 
 def p_Atribuicao_Matriz_Input(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'"
-    if(p[1] in ta):
-        global pos_stack  
-        p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][1]) + "\nmul" + p[5] + "\nadd \nread \natoi \nstoren"
-        pos_stack-=1
+    if(p[1] in tm): 
+        p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][1]) + "\nmul" + p[5] + "\nadd \nread \natoi \nstoren"
     else:
         #erro
         pass
 
 def p_Operacao_Mais(p):
     "Operacao : Operacao '+' Termo"
-    p[0] = str(p[1]) + str(p[3]) + "\nadd"
     global pos_stack
+    p[0] = str(p[1]) + str(p[3]) + "\nadd"
     pos_stack-=1
 
 def p_Operacao_Menos(p):
     "Operacao : Operacao '-' Termo"
-    p[0] = str(p[1]) + str(p[3]) + "\nsub"
     global pos_stack
+    p[0] = str(p[1]) + str(p[3]) + "\nsub"
     pos_stack-=1
 
 def p_Operacao_Termo(p):
@@ -286,14 +278,14 @@ def p_Operacao_Termo(p):
 
 def p_Termo_Mul(p):
     "Termo : Termo '*' Fator"
-    p[0] = str(p[1]) + str(p[3]) + "\nmul"
     global pos_stack
+    p[0] = str(p[1]) + str(p[3]) + "\nmul"
     pos_stack-=1
 
 def p_Termo_Div(p):
     "Termo : Termo '/' Fator"
-    p[0] = str(p[1]) + str(p[3]) + "\ndiv"
     global pos_stack
+    p[0] = str(p[1]) + str(p[3]) + "\ndiv"
     pos_stack-=1
 
 def p_Termo_Fator(p):
@@ -304,30 +296,27 @@ def p_Termo_Fator(p):
 
 def p_Fator_Num(p): 
     "Fator : Num"
-    p[0] = "\npushi " + str(p[1])
     global pos_stack
+    p[0] = "\npushi " + str(p[1])
     pos_stack+=1
 
 def p_Fator_Id(p):
     "Fator : Id"
-    p[0] = "\npushg " + str(ts[p[1]])
     global pos_stack
+    p[0] = "\npushg " + str(ts[p[1]])
     pos_stack+=1
 
 def p_Fator_Array(p): 
     "Fator : Id '[' Operacao ']'"
     global pos_stack
     p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nloadn"
-    
     pos_stack-=1
-    func_nr+=1
 
 def p_Fator_Matriz(p): 
     "Fator : Id '[' Operacao ',' Operacao ']'"
     global pos_stack
     p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + p[5] + "\nmul\nloadn"
     pos_stack-=1
-    func_nr+=1
 
 def p_Fator_Operacao(p):
     "Fator : '(' Operacao ')'"

@@ -7,6 +7,7 @@ repeat-until(aux<0){
         count = count + 1
         write("Numero impar introduzido")
     }
+    aux = readInt()
 }
 write("Numeros impares contados: ")
 write(count)

@@ -1,12 +1,28 @@
+#coding:utf-8
+
+
 import ply.lex as lex
 import sys
 
 
 
-literals = ['(',')','+','-','*','/','=',',','>','<','!','{','}','[',']']
+literals = ['(',')','+','-','*','/','=',',','>','<','!','{','}','[',']',';','%']
 
-tokens = ["Num","If","Else","Id","Repeat","Int","Read","ReadInt","Write","String"]
+tokens = ["Num","If","Else","Id","Repeat","Int","Read","ReadInt","Write","String","For","And","Or","Not"]
 
+
+def t_And(t):
+    r'and'
+    return(t)
+def t_Or(t):
+    r'or'
+    return(t)
+def t_Not(t):
+    r'not'
+    return(t)
+def t_For(t):
+    r'for'
+    return(t)
 def t_If(t):
     r'if'
     return(t)
@@ -51,3 +67,5 @@ for line in sys.stdin:
     lexer.input(line)
     for tok in lexer:
         print(tok)"""
+
+

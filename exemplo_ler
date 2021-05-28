@@ -3,7 +3,7 @@ int n = 10
 int acc = 1
 int aux
 
-repeat-until(n<=0){
+repeat_until(n<=0){
     aux = readInt()
     acc = acc*aux
     n=n-1

@@ -1,6 +1,7 @@
+#coding:utf-8
 import ply.yacc as yacc
-from lex import tokens
-from lex import literals
+from vmlex import tokens
+from vmlex import literals
 import sys
 
 """
@@ -25,13 +26,23 @@ Atribuicao : int id
            | id '[' Operacao ']' '=' ReadInt '(' ')'
            | id '[' Operacao ',' Operacao ']' '=' Operacao
            | id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'
+           | int id '[' Operacao (ou Num simplificando) ']' '=' '{' Elems '}'
+           | id '+' '+'                                                                                                         #acrescentei
+           | id '-' '-'                                                                                                         #acrescentei
+           | id '+' '=' Operacao                                                                                                #acrescentei
+           | id '-' '=' Operacao                                                                                                #acrescentei
            
+
+Elems : Elems ',' Num
+      | Num
+
 Operacao : Operacao '+' Termo
          | Operacao '-' Termo
          | Termo
 
 Termo : Termo '*' Fator
       | Termo '/' Fator
+      | Termo '%' Fator
       | Fator
 
 Fator : Num
@@ -40,12 +51,25 @@ Fator : Num
       | Id '[' Operacao ',' Operacao ']'
       | '(' Operacao ')'
 
-Condicional : Operacao '>' Operacao
-            | Operacao '<' Operacao
-            | Operacao '>' '=' Operacao
-            | Operacao '<' '=' Operacao
-            | Operacao '=' '=' Operacao
-            | Operacao '!' '=' Operacao
+
+Condicional : Condicional OR Cond                                       
+            | Cond
+
+Cond : Cond AND Cond2
+     | Cond2
+
+Cond2 :  NOT Cond
+      | ExpRel
+      | '(' Condicional ')'
+
+
+ExpRel : Operacao '>' Operacao               #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
+       | Operacao '<' Operacao               #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
+       | Operacao '>' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
+       | Operacao '<' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
+       | Operacao '=' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
+       | Operacao '!' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
+       | Operacao                                                                                                                      #acrescentei
 
 Funcao : Write '(' String ')'
        | Write '(' Operacao ')'
@@ -54,6 +78,9 @@ Funcao : Write '(' String ')'
        | Repeat '(' Condicional ')' '{' Instrucoes '}'
        | If '(' Condicional ')' '{' Instrucoes '}' Else '{' Instrucoes '}'
        | If '(' Condicional ')' '{' Instrucoes '}'
+       | For '(' Atribuicao ';' Condicional ';' Atribuicao ')' '{' Instrucoes '}'       #acrescentei
+
+
 """
 
 # Tabela de Simbolos dict{variavel : pos_stack}
@@ -94,6 +121,14 @@ def p_Instrucao_Funcao(p):
     p[0] = p[1]
 
 
+def p_Funcao_For(p):
+    "Funcao : For '(' Atribuicao ';' Condicional ';' Atribuicao ')' '{' Instrucoes '}'"
+    global func_nr
+    p[0] = (str(p[3]) + "\nfor_" + str(func_nr) + ":\n" + str(p[5]) + "\njz fim_for_" 
+            + str(func_nr) + str(p[10]) + str(p[7]) + "\njump for_" + str(func_nr) 
+            + "\nfim_for_" + str(func_nr) + ":")
+    func_nr += 1        
+
 
 def p_Funcao_Write_String(p):
     "Funcao : Write '(' String ')'"
@@ -120,7 +155,7 @@ def p_Funcao_Repeat(p):
     "Funcao : Repeat '(' Condicional ')' '{' Instrucoes '}'"
     global func_nr
     p[0] = ("\nrepeat" + str(func_nr) +":" 
-        + p[3] +"\nnot\njz end" + str(func_nr)
+        + p[3]+"\nnot\njz end" + str(func_nr)
         + p[6]
         + "\njump repeat" + str(func_nr)
         + "\nend" + str(func_nr) +":"
@@ -149,7 +184,41 @@ def p_Funcao_If(p):
         )
     func_nr+=1
 
+#começa novas atribuições
+def p_Atribuicao_Inc_Id(p):
+    "Atribuicao : Id '+' '+'"
+    if(p[1] in ts):
+        p[0] = "\npushg " + str(ts[p[1]]) + "\npushi 1\nadd\nstoreg " + str(ts[p[1]])
+    else:
+        #erro
+        pass
 
+def p_Atribuicao_Dec_Id(p):
+    "Atribuicao : Id '-' '-'"
+    if(p[1] in ts):
+        p[0] = "\npushi 1\npushg " + str(ts[p[1]]) + "\nsub\nstoreg" + str(ts[p[1]])
+    else:
+        #erro
+        pass
+
+
+def p_Atribuicao_Inc_Id_Op(p):
+    "Atribuicao : Id '+' '=' Operacao"
+    if(p[1] in ts):
+        p[0] = "\npushg " + str(ts[p[1]]) + str(p[4]) + "\nadd\nstoreg " + str(ts[p[1]])
+    else:
+        #erro
+        pass
+
+def p_Atribuicao_Dec_Id_Op(p):
+    "Atribuicao : Id '-' '=' Operacao"
+    if(p[1] in ts):
+        p[0] = str(p[4]) + "\npushg " + str(ts[p[1]]) + "\nsub\nstoreg " + str(ts[p[1]])
+    else:
+        #erro
+        pass
+
+#acaba novas atribuições
 
 def p_Atribuicao_Declaracao_Zero(p):
     "Atribuicao : Int Id"
@@ -228,7 +297,9 @@ def p_Atribuicao_Input(p):
 def p_Atribuicao_Array(p):
     "Atribuicao : Id '[' Operacao ']' '=' Operacao"
     if(p[1] in ta):
+        global pos_stack
         p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[6] + "\nstoren"
+        pos_stack-=1
     else:
         #erro
         pass
@@ -236,38 +307,44 @@ def p_Atribuicao_Array(p):
 def p_Atribuicao_Array_Input(p):
     "Atribuicao : Id '[' Operacao ']' '=' ReadInt '(' ')'"
     if(p[1] in ta):
+        global pos_stack
         p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nread \natoi \nstoren"
+        pos_stack-=1
     else:
         #erro
         pass
 
 def p_Atribuicao_Matriz(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' Operacao"
-    if(p[1] in tm): 
+    if(p[1] in ta):
+        global pos_stack  
                                                    #linha      *      tamanho da linha          + posicao da coluna
         p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][2]) + "\nmul" + p[5] + "\nadd" + p[8] + "\nstoren"
+        pos_stack-=1
     else:
         #erro
         pass
 
 def p_Atribuicao_Matriz_Input(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'"
-    if(p[1] in tm): 
-        p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][1]) + "\nmul" + p[5] + "\nadd \nread \natoi \nstoren"
+    if(p[1] in ta):
+        global pos_stack  
+        p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][1]) + "\nmul" + p[5] + "\nadd \nread \natoi \nstoren"
+        pos_stack-=1
     else:
         #erro
         pass
 
 def p_Operacao_Mais(p):
     "Operacao : Operacao '+' Termo"
-    global pos_stack
     p[0] = str(p[1]) + str(p[3]) + "\nadd"
+    global pos_stack
     pos_stack-=1
 
 def p_Operacao_Menos(p):
     "Operacao : Operacao '-' Termo"
-    global pos_stack
     p[0] = str(p[1]) + str(p[3]) + "\nsub"
+    global pos_stack
     pos_stack-=1
 
 def p_Operacao_Termo(p):
@@ -278,15 +355,22 @@ def p_Operacao_Termo(p):
 
 def p_Termo_Mul(p):
     "Termo : Termo '*' Fator"
-    global pos_stack
     p[0] = str(p[1]) + str(p[3]) + "\nmul"
+    global pos_stack
     pos_stack-=1
 
 def p_Termo_Div(p):
     "Termo : Termo '/' Fator"
-    global pos_stack
     p[0] = str(p[1]) + str(p[3]) + "\ndiv"
+    global pos_stack
     pos_stack-=1
+
+def p_Termo_Div(p):
+    "Termo : Termo '%' Fator"
+    p[0] = str(p[1]) + str(p[3]) + "\nmod"
+    global pos_stack
+    pos_stack-=1
+
 
 def p_Termo_Fator(p):
     "Termo : Fator"
@@ -296,27 +380,30 @@ def p_Termo_Fator(p):
 
 def p_Fator_Num(p): 
     "Fator : Num"
-    global pos_stack
     p[0] = "\npushi " + str(p[1])
+    global pos_stack
     pos_stack+=1
 
 def p_Fator_Id(p):
     "Fator : Id"
-    global pos_stack
     p[0] = "\npushg " + str(ts[p[1]])
+    global pos_stack
     pos_stack+=1
 
 def p_Fator_Array(p): 
     "Fator : Id '[' Operacao ']'"
     global pos_stack
+    global func_nr
     p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nloadn"
     pos_stack-=1
+    func_nr+=1
 
 def p_Fator_Matriz(p): 
     "Fator : Id '[' Operacao ',' Operacao ']'"
     global pos_stack
     p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + p[5] + "\nmul\nloadn"
     pos_stack-=1
+    func_nr+=1
 
 def p_Fator_Operacao(p):
     "Fator : '(' Operacao ')'"
@@ -324,42 +411,86 @@ def p_Fator_Operacao(p):
 
 
 
-def p_Condicional_Maior(p):
-    "Condicional : Operacao '>' Operacao"
+def p_ExpRel_Maior(p):
+    "ExpRel : Operacao '>' Operacao"
     p[0] = str(p[1]) + str(p[3]) + "\nsup"
     global pos_stack
     pos_stack-=2
 
-def p_Condicional_Menor(p):
-    "Condicional : Operacao '<' Operacao"
+def p_ExpRel_Menor(p):
+    "ExpRel : Operacao '<' Operacao"
     p[0] = str(p[1]) + str(p[3]) + "\ninf"
     global pos_stack
     pos_stack-=2
 
-def p_Condicional_MaiorIgual(p):
-    "Condicional : Operacao '>' '=' Operacao"
+def p_ExpRel_MaiorIgual(p):
+    "ExpRel : Operacao '>' '=' Operacao"
     p[0] = str(p[1]) + str(p[4]) + "\nsupeq"
     global pos_stack
     pos_stack-=2
 
-def p_Condicional_MenorIgual(p):
-    "Condicional : Operacao '<' '=' Operacao"
+def p_ExpRel_MenorIgual(p):
+    "ExpRel : Operacao '<' '=' Operacao"
     p[0] = str(p[1]) + str(p[4]) + "\ninfeq"
     global pos_stack
     pos_stack-=2
 
-def p_Condicional_Igual(p):
-    "Condicional : Operacao '=' '=' Operacao"
+def p_ExpRel_Igual(p):
+    "ExpRel : Operacao '=' '=' Operacao"
     p[0] = str(p[1]) + str(p[4]) + "\nequal"
     global pos_stack
     pos_stack-=2
 
-def p_Condicional_Diferente(p):
-    "Condicional : Operacao '!' '=' Operacao"
+def p_ExpRel_Diferente(p):
+    "ExpRel : Operacao '!' '=' Operacao"
     p[0] = str(p[1]) + str(p[4]) + "\nequal\nnot"
     global pos_stack
     pos_stack-=2
 
+#completar esta regra
+def p_ExpRel_Exp(p):
+    "ExpRel : Operacao"
+    p[0] = str(p[1]) + "\nequal\nnot"
+    global pos_stack
+    pos_stack-=2
+
+
+
+def p_Condicional_Or_Cond(p):
+    "Condicional : Condicional Or Cond"
+    p[0] = p[1] + p[3] + "\nadd" + p[1] + p[3] + "\nmul\nsub"
+
+
+def p_Condicional_Cond(p):
+    "Condicional : Cond"
+    p[0] = p[1]
+
+
+def p_Cond_And_Cond2(p):
+    "Cond : Cond And Cond2"
+    p[0] = p[1] + p[3] + "\nmul"
+   
+def p_Cond_Cond2(p):
+    "Cond : Cond2"
+    p[0] = p[1]
+   
+#verificar   
+def p_Cond2_Not(p):
+    "Cond2 : Not Condicional"
+    p[0] = p[2] + "\nnot"
+   
+
+def p_Cond2_ExpRel(p):
+    "Cond2 : ExpRel"
+    p[0] = p[1]
+   
+   
+def p_Cond2_Condicional(p):
+    "Cond2 : '(' Condicional ')'"
+    p[0] = p[2]
+
+
+#VERIFICAR OS NOTS NO GERAL
 
 
 #ERROR rule for sintax errors

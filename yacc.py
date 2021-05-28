@@ -491,11 +491,11 @@ parser = yacc.yacc()
 
 #reading input
 
-res = ""
+linhas = ""
 for line in sys.stdin:
-    res += line
+    linhas += line
 
 f = open("codigo.vm", "a")
-result = parser.parse(linha)
+result = parser.parse(linhas)
 f.write(result)
 f.close()

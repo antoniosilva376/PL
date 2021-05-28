@@ -3,13 +3,13 @@ int a[10]
 int i
 int aux
 
-repeat-until(i>=n){
+repeat_until(i>=n){
     aux = readInt()
     a[i] = aux
     i = i+1
 }
 
-repeat-until(n<=0){
+repeat_until(n<=0){
     write(a[n])
     n=n-1
 }

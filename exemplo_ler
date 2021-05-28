@@ -6,6 +6,7 @@ int aux
 repeat-until(n<=0){
     aux = readInt()
     acc = acc*aux
+    n=n-1
 }  
 
 write(acc)

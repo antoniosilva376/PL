@@ -10,6 +10,6 @@ repeat_until(i>=n){
 }
 
 repeat_until(n<=0){
-    write(a[n])
+    write(a[n-1])
     n=n-1
 }

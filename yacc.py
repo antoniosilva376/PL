@@ -94,8 +94,6 @@ def p_LExp(p):
     "LExp : Instrucoes"
     p[0] = p[1]
 
-
-
 def p_Instrucoes_Instrucao(p):
     "Instrucoes : Instrucoes Instrucao"
     p[0] = p[1] + p[2]
@@ -151,7 +149,7 @@ def p_Funcao_Repeat(p):
     "Funcao : Repeat '(' Condicional ')' '{' Instrucoes '}'"
     global func_nr
     p[0] = ("\nrepeat" + str(func_nr) +":" 
-        + p[3]+"\nnot\njz end" + str(func_nr)
+        + p[3]+"\npushi 0\nequal \njz end" + str(func_nr)
         + p[6]
         + "\njump repeat" + str(func_nr)
         + "\nend" + str(func_nr) +":"
@@ -312,7 +310,7 @@ def p_Atribuicao_Array_Input(p):
 
 def p_Atribuicao_Matriz(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' Operacao"
-    if(p[1] in ta):
+    if(p[1] in tm):
         global pos_stack  
                                                    #linha      *      tamanho da linha          + posicao da coluna
         p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][2]) + "\nmul" + p[5] + "\nadd" + p[8] + "\nstoren"
@@ -323,7 +321,7 @@ def p_Atribuicao_Matriz(p):
 
 def p_Atribuicao_Matriz_Input(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'"
-    if(p[1] in ta):
+    if(p[1] in tm):
         global pos_stack  
         p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][1]) + "\nmul" + p[5] + "\nadd \nread \natoi \nstoren"
         pos_stack-=1
@@ -366,7 +364,6 @@ def p_Termo_Mod(p):
     p[0] = str(p[1]) + str(p[3]) + "\nmod"
     global pos_stack
     pos_stack-=1
-
 
 def p_Termo_Fator(p):
     "Termo : Fator"
@@ -456,11 +453,9 @@ def p_Condicional_Or_Cond(p):
     "Condicional : Condicional Or Cond"
     p[0] = p[1] + p[3] + "\nadd" + p[1] + p[3] + "\nmul\nsub"
 
-
 def p_Condicional_Cond(p):
     "Condicional : Cond"
     p[0] = p[1]
-
 
 def p_Cond_And_Cond2(p):
     "Cond : Cond And Cond2"
@@ -497,10 +492,12 @@ def p_error(p):
 parser = yacc.yacc()
 
 #reading input
+
+res = ""
+for line in sys.stdin:
+    res += line
+
 f = open("codigo.vm", "a")
-
-for linha in sys.stdin:
-    result = parser.parse(linha)
-    f.write(result)
-
+result = parser.parse(linha)
+f.write(result)
 f.close()

@@ -386,10 +386,8 @@ def p_Fator_Id(p):
 def p_Fator_Array(p): 
     "Fator : Id '[' Operacao ']'"
     global pos_stack
-    global func_nr
     p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nloadn"
     pos_stack-=1
-    func_nr+=1
 
 def p_Fator_Matriz(p): 
     "Fator : Id '[' Operacao ',' Operacao ']'"

@@ -436,16 +436,14 @@ def p_ExpRel_Igual(p):
 
 def p_ExpRel_Diferente(p):
     "ExpRel : Operacao '!' '=' Operacao"
-    p[0] = str(p[1]) + str(p[4]) + "\nequal\nnot"
+    p[0] = str(p[1]) + str(p[4]) + "\nequal \npushi 0\nequal"
     global pos_stack
     pos_stack-=2
 
 #completar esta regra
 def p_ExpRel_Exp(p):
     "ExpRel : Operacao"
-    p[0] = str(p[1]) + "\nequal\nnot"
-    global pos_stack
-    pos_stack-=2
+    p[0] = str(p[1])
 
 
 
@@ -468,7 +466,7 @@ def p_Cond_Cond2(p):
 #verificar   
 def p_Cond2_Not(p):
     "Cond2 : Not Condicional"
-    p[0] = p[2] + "\nnot"
+    p[0] = p[2] + "\npushi 0 \nequal"
    
 
 def p_Cond2_ExpRel(p):

@@ -131,7 +131,7 @@ def p_Funcao_Write_String(p):
 
 def p_Funcao_Write_Operacao(p):
     "Funcao : Write '(' Operacao ')'"
-    p[0] = p[3] + "\nstri" + "\nwrites"
+    p[0] = p[3] + "\nstri" + "\nwrites \npushs " + "\"\\n\"" + "\nwrites" 
 
 def p_Funcao_ReadInt(p):
     "Funcao : ReadInt '(' ')'"

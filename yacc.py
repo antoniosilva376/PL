@@ -1,8 +1,9 @@
 #coding:utf-8
 import ply.yacc as yacc
-from vmlex import tokens
-from vmlex import literals
+from lex import tokens
+from lex import literals
 import sys
+from os import write
 
 """
 LExp : Instrucoes
@@ -26,15 +27,10 @@ Atribuicao : int id
            | id '[' Operacao ']' '=' ReadInt '(' ')'
            | id '[' Operacao ',' Operacao ']' '=' Operacao
            | id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'
-           | int id '[' Operacao (ou Num simplificando) ']' '=' '{' Elems '}'
            | id '+' '+'                                                                                                         #acrescentei
            | id '-' '-'                                                                                                         #acrescentei
            | id '+' '=' Operacao                                                                                                #acrescentei
            | id '-' '=' Operacao                                                                                                #acrescentei
-           
-
-Elems : Elems ',' Num
-      | Num
 
 Operacao : Operacao '+' Termo
          | Operacao '-' Termo
@@ -365,7 +361,7 @@ def p_Termo_Div(p):
     global pos_stack
     pos_stack-=1
 
-def p_Termo_Div(p):
+def p_Termo_Mod(p):
     "Termo : Termo '%' Fator"
     p[0] = str(p[1]) + str(p[3]) + "\nmod"
     global pos_stack
@@ -501,6 +497,10 @@ def p_error(p):
 parser = yacc.yacc()
 
 #reading input
+f = open("codigo.vm", "a")
+
 for linha in sys.stdin:
     result = parser.parse(linha)
-    print(result)
+    f.write(result)
+
+f.close()

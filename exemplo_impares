@@ -1,0 +1,12 @@
+int count = 0
+int aux 
+write("Introduza um numero natural, se deseja concluir insira um numero menor que 0")
+aux = readInt()
+repeat-until(aux<0){
+    if(not aux % 2){
+        count = count + 1
+        write("Numero impar introduzido")
+    }
+}
+write("Numeros impares contados: ")
+write(count)

@@ -4,7 +4,7 @@ int menor = readInt()
 n=n-1
 int prox
 
-repeat-until(n<=0){
+repeat_until(n<=0){
     prox = readInt()
     if(prox<menor){
         menor = prox

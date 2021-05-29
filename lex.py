@@ -30,7 +30,7 @@ def t_Num(t):
     r'\d+'
     return(t)
 def t_Repeat(t): 
-    r'repeat-until'
+    r'repeat_until'
     return(t)
 def t_ReadInt(t): 
     r'readInt'

@@ -1,15 +1,10 @@
 #coding:utf-8
-
-
 import ply.lex as lex
 import sys
-
-
 
 literals = ['(',')','+','-','*','/','=',',','>','<','!','{','}','[',']',';','%']
 
 tokens = ["Num","If","Else","Id","Repeat","Int","Read","ReadInt","Write","String","For","And","Or","Not"]
-
 
 def t_And(t):
     r'and'
@@ -61,11 +56,3 @@ def t_error(t):
     t.lexer.skip(1)
 
 lexer = lex.lex()
-
-"""
-for line in sys.stdin:
-    lexer.input(line)
-    for tok in lexer:
-        print(tok)"""
-
-

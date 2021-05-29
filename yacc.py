@@ -183,18 +183,22 @@ def p_Atribuicao_Inc_Id(p):
 
 def p_Atribuicao_Dec_Id(p):
     "Atribuicao : Id '-' '-'"
-    if(p[1] in ts):
+    if(p[1] in ts):  
         p[0] = "\npushi 1\npushg " + str(ts[p[1]]) + "\nsub\nstoreg" + str(ts[p[1]])
 
 def p_Atribuicao_Inc_Id_Op(p):
     "Atribuicao : Id '+' '=' Operacao"
     if(p[1] in ts):
+        global pos_stack
         p[0] = "\npushg " + str(ts[p[1]]) + str(p[4]) + "\nadd\nstoreg " + str(ts[p[1]])
+        pos_stack-=1
 
 def p_Atribuicao_Dec_Id_Op(p):
     "Atribuicao : Id '-' '=' Operacao"
     if(p[1] in ts):
+        global pos_stack
         p[0] = str(p[4]) + "\npushg " + str(ts[p[1]]) + "\nsub\nstoreg " + str(ts[p[1]])
+        pos_stack-=1
 
 def p_Atribuicao_Declaracao_Zero(p):
     "Atribuicao : Int Id"

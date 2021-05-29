@@ -15,7 +15,6 @@ Instrucao : Atribuicao
           | Operacao
           | Funcao
 
-
 Atribuicao : int id
            | int id '[' Num ']'
            | int id '[' Num ',' Num ']'
@@ -27,10 +26,10 @@ Atribuicao : int id
            | id '[' Operacao ']' '=' ReadInt '(' ')'
            | id '[' Operacao ',' Operacao ']' '=' Operacao
            | id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'
-           | id '+' '+'                                                                                                         #acrescentei
-           | id '-' '-'                                                                                                         #acrescentei
-           | id '+' '=' Operacao                                                                                                #acrescentei
-           | id '-' '=' Operacao                                                                                                #acrescentei
+           | id '+' '+'  
+           | id '-' '-' 
+           | id '+' '=' Operacao 
+           | id '-' '=' Operacao  
 
 Operacao : Operacao '+' Termo
          | Operacao '-' Termo
@@ -58,14 +57,13 @@ Cond2 :  NOT Cond
       | ExpRel
       | '(' Condicional ')'
 
-
-ExpRel : Operacao '>' Operacao               #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
-       | Operacao '<' Operacao               #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
-       | Operacao '>' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
-       | Operacao '<' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
-       | Operacao '=' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
-       | Operacao '!' '=' Operacao           #provoca conflito shift-reduce sem problema porque os LockAhead são diferentes
-       | Operacao                                                                                                                      #acrescentei
+ExpRel : Operacao '>' Operacao 
+       | Operacao '<' Operacao
+       | Operacao '>' '=' Operacao     
+       | Operacao '<' '=' Operacao      
+       | Operacao '=' '=' Operacao  
+       | Operacao '!' '=' Operacao  
+       | Operacao   
 
 Funcao : Write '(' String ')'
        | Write '(' Operacao ')'
@@ -74,9 +72,7 @@ Funcao : Write '(' String ')'
        | Repeat '(' Condicional ')' '{' Instrucoes '}'
        | If '(' Condicional ')' '{' Instrucoes '}' Else '{' Instrucoes '}'
        | If '(' Condicional ')' '{' Instrucoes '}'
-       | For '(' Atribuicao ';' Condicional ';' Atribuicao ')' '{' Instrucoes '}'       #acrescentei
-
-
+       | For '(' Atribuicao ';' Condicional ';' Atribuicao ')' '{' Instrucoes '}' 
 """
 
 # Tabela de Simbolos dict{variavel : pos_stack}
@@ -115,6 +111,7 @@ def p_Instrucao_Funcao(p):
     p[0] = p[1]
 
 
+           
 def p_Funcao_For(p):
     "Funcao : For '(' Atribuicao ';' Condicional ';' Atribuicao ')' '{' Instrucoes '}'"
     global func_nr
@@ -122,7 +119,6 @@ def p_Funcao_For(p):
             + str(func_nr) + str(p[10]) + str(p[7]) + "\njump for_" + str(func_nr) 
             + "\nfim_for_" + str(func_nr) + ":")
     func_nr += 1        
-
 
 def p_Funcao_Write_String(p):
     "Funcao : Write '(' String ')'"
@@ -178,41 +174,27 @@ def p_Funcao_If(p):
         )
     func_nr+=1
 
-#começa novas atribuições
+
+
 def p_Atribuicao_Inc_Id(p):
     "Atribuicao : Id '+' '+'"
     if(p[1] in ts):
         p[0] = "\npushg " + str(ts[p[1]]) + "\npushi 1\nadd\nstoreg " + str(ts[p[1]])
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Dec_Id(p):
     "Atribuicao : Id '-' '-'"
     if(p[1] in ts):
         p[0] = "\npushi 1\npushg " + str(ts[p[1]]) + "\nsub\nstoreg" + str(ts[p[1]])
-    else:
-        #erro
-        pass
-
 
 def p_Atribuicao_Inc_Id_Op(p):
     "Atribuicao : Id '+' '=' Operacao"
     if(p[1] in ts):
         p[0] = "\npushg " + str(ts[p[1]]) + str(p[4]) + "\nadd\nstoreg " + str(ts[p[1]])
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Dec_Id_Op(p):
     "Atribuicao : Id '-' '=' Operacao"
     if(p[1] in ts):
         p[0] = str(p[4]) + "\npushg " + str(ts[p[1]]) + "\nsub\nstoreg " + str(ts[p[1]])
-    else:
-        #erro
-        pass
-
-#acaba novas atribuições
 
 def p_Atribuicao_Declaracao_Zero(p):
     "Atribuicao : Int Id"
@@ -221,9 +203,6 @@ def p_Atribuicao_Declaracao_Zero(p):
         ts[p[2]] = pos_stack
         p[0] = "\npushi 0"
         pos_stack+=1
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Declaracao_Input(p):
     "Atribuicao : Int Id '=' ReadInt '(' ')'"
@@ -232,9 +211,6 @@ def p_Atribuicao_Declaracao_Input(p):
         ts[p[2]] = pos_stack
         p[0] = "\nread \natoi" 
         pos_stack+=1
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Declaracao(p):
     "Atribuicao : Int Id '=' Operacao"
@@ -242,9 +218,6 @@ def p_Atribuicao_Declaracao(p):
         global pos_stack
         ts[p[2]] = pos_stack-1
         p[0] =  str(p[4])
-    else:
-        #erro
-        pass
     
 def p_Atribuicao_Declaracao_Array(p):
     "Atribuicao : Int Id '[' Num ']'"
@@ -253,9 +226,6 @@ def p_Atribuicao_Declaracao_Array(p):
         ta[p[2]] = (pos_stack,int(p[4]))
         p[0] = "\npushn " + str(p[4])
         pos_stack += int(p[4])
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Declaracao_Matriz(p):
     "Atribuicao : Int Id '[' Num ',' Num ']'"
@@ -264,9 +234,6 @@ def p_Atribuicao_Declaracao_Matriz(p):
         tm[p[2]] = (pos_stack,int(p[4]),int(p[6]))
         p[0] = "\npushn " + str(int(p[4])*int(p[6]))
         pos_stack += int(p[4])*int(p[6])
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Alt(p):
     "Atribuicao : Id '=' Operacao"
@@ -274,9 +241,6 @@ def p_Atribuicao_Alt(p):
         global pos_stack
         p[0] =  str(p[3]) + "\nstoreg " + str(ts[p[1]])
         pos_stack-=1
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Input(p):
     "Atribuicao : Id '=' ReadInt '(' ')'"
@@ -284,9 +248,6 @@ def p_Atribuicao_Input(p):
         global pos_stack
         p[0] =  "\nread \natoi \nstoreg " + str(ts[p[1]])
         pos_stack-=1
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Array(p):
     "Atribuicao : Id '[' Operacao ']' '=' Operacao"
@@ -294,9 +255,6 @@ def p_Atribuicao_Array(p):
         global pos_stack
         p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[6] + "\nstoren"
         pos_stack-=1
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Array_Input(p):
     "Atribuicao : Id '[' Operacao ']' '=' ReadInt '(' ')'"
@@ -304,20 +262,13 @@ def p_Atribuicao_Array_Input(p):
         global pos_stack
         p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\nread \natoi \nstoren"
         pos_stack-=1
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Matriz(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' Operacao"
     if(p[1] in tm):
         global pos_stack  
-                                                   #linha      *      tamanho da linha          + posicao da coluna
         p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][2]) + "\nmul" + p[5] + "\nadd" + p[8] + "\nstoren"
         pos_stack-=1
-    else:
-        #erro
-        pass
 
 def p_Atribuicao_Matriz_Input(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'"
@@ -325,9 +276,8 @@ def p_Atribuicao_Matriz_Input(p):
         global pos_stack  
         p[0] = "\npushgp" + "\npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][1]) + "\nmul" + p[5] + "\nadd \nread \natoi \nstoren"
         pos_stack-=1
-    else:
-        #erro
-        pass
+
+
 
 def p_Operacao_Mais(p):
     "Operacao : Operacao '+' Termo"
@@ -438,7 +388,6 @@ def p_ExpRel_Diferente(p):
     global pos_stack
     pos_stack-=2
 
-#completar esta regra
 def p_ExpRel_Exp(p):
     "ExpRel : Operacao"
     p[0] = str(p[1])
@@ -461,26 +410,20 @@ def p_Cond_Cond2(p):
     "Cond : Cond2"
     p[0] = p[1]
    
-#verificar   
 def p_Cond2_Not(p):
     "Cond2 : Not Condicional"
     p[0] = p[2] + "\npushi 0 \nequal"
    
-
 def p_Cond2_ExpRel(p):
     "Cond2 : ExpRel"
     p[0] = p[1]
-   
-   
+  
 def p_Cond2_Condicional(p):
     "Cond2 : '(' Condicional ')'"
     p[0] = p[2]
 
 
-#VERIFICAR OS NOTS NO GERAL
-
-
-#ERROR rule for sintax errors
+           
 def p_error(p):
     print("Syntax error in input: ",p)
 
@@ -488,11 +431,10 @@ def p_error(p):
 parser = yacc.yacc()
 
 #reading input
-
 linhas = ""
 for line in sys.stdin:
     linhas += line
-
+#writing to file the result
 f = open("codigo.vm", "a")
 result = parser.parse(linhas)
 f.write(result)

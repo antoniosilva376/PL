@@ -254,7 +254,7 @@ def p_Atribuicao_Array(p):
     if(p[1] in ta):
         global pos_stack
         p[0] = "\npushgp \npushi " + str(ta[p[1]][0]) + "\npadd" + p[3] + p[6] + "\nstoren"
-        pos_stack-=1
+        pos_stack-=2
 
 def p_Atribuicao_Array_Input(p):
     "Atribuicao : Id '[' Operacao ']' '=' ReadInt '(' ')'"
@@ -268,7 +268,7 @@ def p_Atribuicao_Matriz(p):
     if(p[1] in tm):
         global pos_stack  
         p[0] = "\npushgp" + "\npushi " + str(tm[p[1]][0]) + "\npadd" + p[3] + "\npushi " + str(tm[p[1]][2]) + "\nmul" + p[5] + "\nadd" + p[8] + "\nstoren"
-        pos_stack-=1
+        pos_stack-=2
 
 def p_Atribuicao_Matriz_Input(p):
     "Atribuicao : Id '[' Operacao ',' Operacao ']' '=' ReadInt '(' ')'"

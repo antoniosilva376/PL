@@ -3,7 +3,7 @@ int aux
 write("Introduza um numero natural, se deseja concluir insira um numero menor que 0")
 aux = readInt()
 repeat_until(aux<0){
-    if(not aux % 2){
+    if(aux % 2 == 1){
         count = count + 1
         write("Numero impar introduzido")
     }

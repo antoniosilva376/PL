@@ -1,0 +1,15 @@
+int n = readInt()
+
+int menor = readInt()
+n=n-1
+int prox
+
+repeat_until(n<=0){
+    prox = readInt()
+    if(prox<menor){
+        menor = prox
+    }
+    n = n-1
+}
+write("O menor numero e:")
+write(menor)

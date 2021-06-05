@@ -1,0 +1,21 @@
+int a = readInt()
+int b = readInt()
+int c = readInt()
+int d = readInt()
+
+if(a==b){
+    if(b==c){
+        if(c==d){
+            write("Sao lados de um quadrado")
+        }
+        else{
+            write("Nao sao lados de um quadrado")
+        }
+    }
+    else{
+        write("Nao sao lados de um quadrado")       
+    }
+}
+else{
+    write("Nao sao lados de um quadrado")
+}
